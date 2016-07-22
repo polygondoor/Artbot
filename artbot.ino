@@ -1,14 +1,15 @@
-
+// Include libraries for the OLED screen
 #include <Adafruit_GFX.h>   
 #include <SPI.h>            
 #include <Wire.h>           
 #include <Adafruit_SSD1306.h>  
 
-#define OLED_RESET 4                  // this code resets the display.
-Adafruit_SSD1306 display(OLED_RESET);  // setup up the OLED screen
-
+// Include libraries for the Stepper motors
 #include <AccelStepper.h>
 #include <AFMotor.h>
+
+#define OLED_RESET 4                  // this code resets the display.
+Adafruit_SSD1306 display(OLED_RESET);  // setup up the OLED screen
 
 // two stepper motors one on each port
 AF_Stepper motor1(2048, 1);
@@ -162,6 +163,15 @@ void loop()
 {
   if (!isDrawing) {
     readRotaryEncoders();
+
+    // *TEST* read the IR sensing
+    digitalWrite(23, 255);         
+    // sensor1pin = analogRead(23);
+    message( analogRead(1) );
+    
+    Serial.print("sensor1:");
+    Serial.println(sensor1pin);
+    delay(100);
     
     // read the value of the knob
     if (digitalRead(pinButton_1) == LOW) {
