@@ -1,10 +1,11 @@
 
-#include <Adafruit_GFX.h>   // these things at the top just load a bunch of libraries we need to run the screen.
-#include <SPI.h>            // libraries are collections of code that have been written by others so we don't
-#include <Wire.h>           // don't have to.
-#include <Adafruit_SSD1306.h>  //we need these for libraries to make our screen easier to use.
+#include <Adafruit_GFX.h>   
+#include <SPI.h>            
+#include <Wire.h>           
+#include <Adafruit_SSD1306.h>  
+
 #define OLED_RESET 4                  // this code resets the display.
-Adafruit_SSD1306 display(OLED_RESET);  //
+Adafruit_SSD1306 display(OLED_RESET);  // setup up the OLED screen
 
 #include <AccelStepper.h>
 #include <AFMotor.h>
