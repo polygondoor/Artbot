@@ -44,53 +44,54 @@ float maxSpeedRight = 400;
 float accelerationRight = 100;
 float moveToRight = 1000000;
 
-int pinA_1 = 49;
-int pinB_1 = 47;
-int pinButton_1 = 45;
-int val_1;
-int val_1b;
-long encoderPosCount_1 = 93; // distance
-int pinALast_1;
-boolean bCW_1;
+int rotaryEncoder1_set_clkPin = 49;
+int rotaryEncoder1_set_dtPin = 47;
+int rotaryEncoder1_set_btnPin = 45;
+int rotaryEncoder1_read_clkPin;
+int rotaryEncoder1_read_dtPin;
+long rotaryEncoder1_positionCount = 93; // distance
+int rotaryEncoder1_previousRead_clkPin;
+// boolean bCW_1; // this is never used
 
-int pinA_2 = 40;
-int pinB_2 = 38;
-int pinButton_2 = 36;
-int val_2;
-int val_2b;
-long encoderPosCount_2 = 25; // speed
-int pinALast_2;
-boolean bCW_2;
+int rotaryEncoder2_set_clkPin = 40;
+int rotaryEncoder2_set_dtPin = 38;
+int rotaryEncoder2_set_btnPin = 36;
+int rotaryEncoder2_read_clkPin;
+int rotaryEncoder2_read_dtPin;
+long rotaryEncoder2_positionCount = 25; // speed
+int rotaryEncoder2_previousRead_clkPin;
+// boolean bCW_2; // this is never used
 
-int pinA_3 = 46;
-int pinB_3 = 44;
-int pinButton_3 = 42;
-int val_3;
-int val_3b;
-long encoderPosCount_3 = 35; // speed (30)
-int pinALast_3;
-boolean bCW_3;
+int rotaryEncoder3_set_clkPin = 46;
+int rotaryEncoder3_set_dtPin = 44;
+int rotaryEncoder3_set_btnPin = 42;
+int rotaryEncoder3_read_clkPin;
+int rotaryEncoder3_read_dtPin;
+long rotaryEncoder3_positionCount = 35; // speed (30)
+int rotaryEncoder3_previousRead_clkPin;
+// boolean bCW_3; // this is never used
 
-int pinA_4 = 52;
-int pinB_4 = 50;
-int pinButton_4 = 48;
-int val_4;
-int val_4b;
-long encoderPosCount_4 = 100; // distance (1000)
-int pinALast_4;
-boolean bCW_4;
+int rotaryEncoder4_set_clkPin = 52;
+int rotaryEncoder4_set_dtPin = 50;
+int rotaryEncoder4_set_btnPin = 48;
+int rotaryEncoder4_read_clkPin;
+int rotaryEncoder4_read_dtPin;
+long rotaryEncoder4_positionCount = 100; // distance (1000)
+int rotaryEncoder4_previousRead_clkPin;
+// boolean bCW_4; // this is never used
 
 int increment = 1;
 
 boolean isDrawing = false;
+int sensor1pin;
 
 int rotaryMode = 0;
 
 void setup()
 {
-  pinMode(pinA_1, INPUT); // clk
-  pinMode(pinB_1, INPUT); // dt
-  pinMode(pinButton_1, INPUT);
+  pinMode(rotaryEncoder1_set_clkPin, INPUT); // clk
+  pinMode(rotaryEncoder1_set_dtPin, INPUT); // dt
+  pinMode(rotaryEncoder1_set_btnPin, INPUT); // btn
 
   pinMode(25, INPUT);
   pinMode(23, INPUT);
@@ -146,17 +147,17 @@ void captureSettings() {
   // turns in steps = 2048 * configuredDistance / (64 * 3.1416)
 
   // RIGHT WHEEL (knobs 1 and 2 (speed))
-  stepper1.setMaxSpeed( encoderPosCount_2 * 10); // max 400
+  stepper1.setMaxSpeed(rotaryEncoder2_positionCount * 10); // max 400
   stepper1.setAcceleration(accelerationRight);
   // calculate how many steps to go (here we divide by 2 because the bounce goes fowards and backwards)
-  steps = (encoderPosCount_1 * 2048 / (64 * 3.1416) / 2);
+  steps = (rotaryEncoder1_positionCount * 2048 / (64 * 3.1416) / 2);
   stepper1.moveTo(steps);
-  // message( String(steps) );
+  // message(String(steps) );
 
   // LEFT WHEEL (knobs 4 and 3(speed))
-  stepper2.setMaxSpeed( encoderPosCount_3 * 10); // max 400
+  stepper2.setMaxSpeed(rotaryEncoder3_positionCount * 10); // max 400
   stepper2.setAcceleration(accelerationLeft);
-  steps = (encoderPosCount_4 * 2048 / (64 * 3.1416) / 2);
+  steps = (rotaryEncoder4_positionCount * 2048 / (64 * 3.1416) / 2);
   stepper2.moveTo(steps);
 }
 
@@ -166,15 +167,15 @@ void loop() {
 
     // *TEST* read the IR sensing
     digitalWrite(23, 255);
-    // sensor1pin = analogRead(23);
-    message( analogRead(1) );
+    sensor1pin = analogRead(23);
+    message(analogRead(1) );
 
     Serial.print("sensor1:");
     Serial.println(sensor1pin);
     delay(100);
 
     // read the value of the knob
-    if (digitalRead(pinButton_1) == LOW) {
+    if (digitalRead(rotaryEncoder1_set_btnPin) == LOW) {
       // changeMode
       rotaryMode = (rotaryMode + 1) % 4;
       delay(500);
@@ -225,45 +226,45 @@ void loop() {
 }
 
 void readRotaryEncoders() {
-  val_1 = digitalRead(pinA_1); // orange cable, CLK
-  val_1b = digitalRead(pinB_1);
+  rotaryEncoder1_read_clkPin = digitalRead(rotaryEncoder1_set_clkPin); // orange cable, CLK
+  rotaryEncoder1_read_dtPin = digitalRead(rotaryEncoder1_set_dtPin);
 
   rotaryMode; // Can be 0 1 2 or 3 (depending on which value we are changing)
 
-  if ((val_1 != pinALast_1) && (val_1 == LOW)) { // Knob Rotated l when aVal changes, BUT use only if aVal is LOW.
-    if (val_1b == LOW) {
+  if ((rotaryEncoder1_read_clkPin != rotaryEncoder1_previousRead_clkPin) && (rotaryEncoder1_read_clkPin == LOW)) { // Knob Rotated l when aVal changes, BUT use only if aVal is LOW.
+    if (rotaryEncoder1_read_dtPin == LOW) {
       if (rotaryMode == 0) {
-        encoderPosCount_1 += increment;
+        rotaryEncoder1_positionCount += increment;
       }
       else if (rotaryMode == 1) {
-        encoderPosCount_2 += increment;
+        rotaryEncoder2_positionCount += increment;
       }
       else if (rotaryMode == 2) {
-        encoderPosCount_3 += increment;
+        rotaryEncoder3_positionCount += increment;
       }
       else {
-        encoderPosCount_4 += increment;
+        rotaryEncoder4_positionCount += increment;
       }
       report();
     }
     else {
       if (rotaryMode == 0) {
-        encoderPosCount_1 -= increment;
+        rotaryEncoder1_positionCount -= increment;
       }
       else if (rotaryMode == 1) {
-        encoderPosCount_2 -= increment;
+        rotaryEncoder2_positionCount -= increment;
       }
       else if (rotaryMode == 2) {
-        encoderPosCount_3 -= increment;
+        rotaryEncoder3_positionCount -= increment;
       }
       else {
-        encoderPosCount_4 -= increment;
+        rotaryEncoder4_positionCount -= increment;
       }
       report();
     }
   }
 
-  pinALast_1 = val_1; // Don’t forget this
+  rotaryEncoder1_previousRead_clkPin = rotaryEncoder1_read_clkPin; // Don’t forget this
 }
 
 void report() {
@@ -277,16 +278,16 @@ void report() {
 
   display.setTextSize(2);
   display.setCursor(70, 50);
-  display.print(encoderPosCount_1); //this copies some text to the screens memory
+  display.print(rotaryEncoder1_positionCount); //this copies some text to the screens memory
 
   display.setCursor(70, 12);
-  display.print(encoderPosCount_2); //this copies some text to the screens memory
+  display.print(rotaryEncoder2_positionCount); //this copies some text to the screens memory
 
   display.setCursor(0, 12);
-  display.print(encoderPosCount_3); //this copies some text to the screens memory
+  display.print(rotaryEncoder3_positionCount); //this copies some text to the screens memory
 
   display.setCursor(0, 50);
-  display.print(encoderPosCount_4); //this copies some text to the screens memory
+  display.print(rotaryEncoder4_positionCount); //this copies some text to the screens memory
 
   display.display();
 }
@@ -322,16 +323,16 @@ void displayStartMessage() {
 
   display.setTextSize(1);
   display.setCursor(0, 0);
-  display.print(encoderPosCount_3); //this copies some text to the screens memory
+  display.print(rotaryEncoder3_positionCount); //this copies some text to the screens memory
 
   display.setCursor(110, 0);
-  display.print(encoderPosCount_2); //this copies some text to the screens memory
+  display.print(rotaryEncoder2_positionCount); //this copies some text to the screens memory
 
   display.setCursor(0, 50);
-  display.print(encoderPosCount_4); //this copies some text to the screens memory
+  display.print(rotaryEncoder4_positionCount); //this copies some text to the screens memory
 
   display.setCursor(110, 50);
-  display.print(encoderPosCount_1); //this copies some text to the screens memory
+  display.print(rotaryEncoder1_positionCount); //this copies some text to the screens memory
 
   display.display();
 }
