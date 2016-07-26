@@ -83,6 +83,7 @@ int rotaryEncoder4_previousRead_clkPin;
 int increment = 1;
 
 boolean isDrawing = false;
+int sensor1pin;
 
 int rotaryMode = 0;
 
@@ -166,7 +167,7 @@ void loop() {
 
     // *TEST* read the IR sensing
     digitalWrite(23, 255);
-    // sensor1pin = analogRead(23);
+    sensor1pin = analogRead(23);
     message(analogRead(1) );
 
     Serial.print("sensor1:");
