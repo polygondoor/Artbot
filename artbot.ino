@@ -1,5 +1,8 @@
 // Include libraries for the OLED screen
 // Some more doc here
+
+// Evan is nicely pedantic
+
 #include <Adafruit_GFX.h>   
 #include <SPI.h>            
 #include <Wire.h>           
