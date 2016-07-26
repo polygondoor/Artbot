@@ -1,25 +1,9 @@
-/*
-  Artbot
-
-  Describe what it does in layman's terms.  Refer to the components
-  attached to the various pins.
-
-  The circuit:
-    list the components attached to each input
-    list the components attached to each output
-
-  Created day month year
-  By author's name
-  Modified day month year
-  By author's name
-
-  http://url/of/online/tutorial.cc
-
-*/
-#include <Adafruit_GFX.h>
-#include <SPI.h>
-#include <Wire.h>
-#include <Adafruit_SSD1306.h>
+// Include libraries for the OLED screen
+// Some more doc here
+#include <Adafruit_GFX.h>   
+#include <SPI.h>            
+#include <Wire.h>           
+#include <Adafruit_SSD1306.h>  
 
 // Include libraries for the Stepper motors
 #include <AccelStepper.h>
@@ -59,8 +43,6 @@ float moveToLeft = 10000;
 float maxSpeedRight = 400;
 float accelerationRight = 100;
 float moveToRight = 1000000;
-
-// This is a comment by Greg. How now brown cow?
 
 int pinA_1 = 49;
 int pinB_1 = 47;
@@ -184,49 +166,40 @@ void loop()
     readRotaryEncoders();
 
     // *TEST* read the IR sensing
-    digitalWrite(23, 255);
+    digitalWrite(23, 255);         
     // sensor1pin = analogRead(23);
     message( analogRead(1) );
-
+    
     Serial.print("sensor1:");
     Serial.println(sensor1pin);
     delay(100);
-
+    
     // read the value of the knob
     if (digitalRead(pinButton_1) == LOW) {
       // changeMode
       rotaryMode = (rotaryMode + 1) % 4;
       delay(500);
     }
-
+    
     //push button to change increment
-    if (digitalRead(25) == HIGH) {
-      if (increment == 1) {
+    if (digitalRead(25) == HIGH) {    
+      if (increment == 1) { 
         increment = 10;
         message("Increment 10");
-      } else if (increment == 10) {
-        increment = 100;
-        message("Increment 100");
-      }
-      else if (increment == 100) {
-        increment = 1000;
-        message("Increment 1000");
-      }
-      else if (increment == 1000) {
-        increment = 1;
-        message("Increment 1");
-      }
+      } else if (increment == 10) {increment = 100; message("Increment 100");}
+      else if (increment == 100) {increment = 1000; message("Increment 1000");}
+      else if (increment == 1000) {increment = 1; message("Increment 1");} 
       delay(500);
       report();
     }
-
+    
     //push button to start
-    if (digitalRead(23) == HIGH) {
+    if (digitalRead(23) == HIGH) {    
       isDrawing = true;
       displayStartMessage();
       captureSettings();
     }
-
+    
   } else {
     if (stepper1.distanceToGo() == 0) {
       // this line resets the whole device (but user needs to wait till wheel bounces)
@@ -253,36 +226,20 @@ void readRotaryEncoders() {
 
   if ((val_1 != pinALast_1) && (val_1 == LOW)) { // Knob Rotated l when aVal changes, BUT use only if aVal is LOW.
     if (val_1b == LOW) {
-      if (rotaryMode == 0)      {
-        encoderPosCount_1 += increment;
-      }
-      else if (rotaryMode == 1) {
-        encoderPosCount_2 += increment;
-      }
-      else if (rotaryMode == 2) {
-        encoderPosCount_3 += increment;
-      }
-      else {
-        encoderPosCount_4 += increment;
-      }
+      if (rotaryMode == 0)      { encoderPosCount_1 += increment; }
+      else if (rotaryMode == 1) { encoderPosCount_2 += increment; }
+      else if (rotaryMode == 2) { encoderPosCount_3 += increment; }
+      else { encoderPosCount_4 += increment; }
       report();
     } else {
-      if (rotaryMode == 0)      {
-        encoderPosCount_1 -= increment;
-      }
-      else if (rotaryMode == 1) {
-        encoderPosCount_2 -= increment;
-      }
-      else if (rotaryMode == 2) {
-        encoderPosCount_3 -= increment;
-      }
-      else {
-        encoderPosCount_4 -= increment;
-      }
+      if (rotaryMode == 0)      { encoderPosCount_1 -= increment; }
+      else if (rotaryMode == 1) { encoderPosCount_2 -= increment; }
+      else if (rotaryMode == 2) { encoderPosCount_3 -= increment; }
+      else { encoderPosCount_4 -= increment; }
       report();
     }
   }
-
+  
   pinALast_1 = val_1; // Don’t forget this
 }
 
