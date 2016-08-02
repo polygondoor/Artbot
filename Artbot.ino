@@ -1,22 +1,86 @@
-// Include libraries for the OLED screen
-#include <Adafruit_GFX.h>   
-#include <SPI.h>            
-#include <Wire.h>           
-#include <Adafruit_SSD1306.h>  
+/* 
+ *  This Arduino project drives the Polygon Door Artbot
+ *  Its aim is to empower as many drawing modes as possible.
+ *
+ *  The Artbot is of the ilk of drawing bots starting with MIT's turtle bot
+ *  in which a pen is positioned between 2 wheels, each drien by a separate stepper motor
+ *   
+ */
+ 
+// Include libraries for drawing to the OLED screen
+#include <Adafruit_GFX.h>
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_SSD1306.h>
 
-// Include libraries for the Stepper motors
+// Include libraries for the stepper motors
 #include <AccelStepper.h>
 #include <AFMotor.h>
 
-#define OLED_RESET 4                  // this code resets the display.
-Adafruit_SSD1306 display(OLED_RESET);  // setup up the OLED screen
+// Declare the OLED screen
+#define OLED_RESET 4                  
+Adafruit_SSD1306 display(OLED_RESET); 
 
-// two stepper motors one on each port
+// Declare the motors (for AFMotor lib)
 AF_Stepper motor1(2048, 1);
 AF_Stepper motor2(2048, 2);
 
-// you can change these to DOUBLE or INTERLEAVE or MICROSTEP!
-// wrappers for the first motor!
+
+
+// Default configurations of the motors
+float maxSpeedLeft = 400;
+float accelerationLeft = 100;
+float moveToLeft = 10000;
+
+float maxSpeedRight = 400;
+float accelerationRight = 100;
+float moveToRight = 1000000;
+
+// Many values are required for the action of the rotary controllers
+int rotaryEncoder1_set_clkPin = 49;
+int rotaryEncoder1_set_dtPin = 47;
+int rotaryEncoder1_set_btnPin = 45;
+int rotaryEncoder1_read_clkPin;
+int rotaryEncoder1_read_dtPin;
+long rotaryEncoder1_positionCount = 93;
+int rotaryEncoder1_previousRead_clkPin;
+
+int rotaryEncoder2_set_clkPin = 40;
+int rotaryEncoder2_set_dtPin = 38;
+int rotaryEncoder2_set_btnPin = 36;
+int rotaryEncoder2_read_clkPin;
+int rotaryEncoder2_read_dtPin;
+long rotaryEncoder2_positionCount = 25;
+int rotaryEncoder2_previousRead_clkPin;
+
+int rotaryEncoder3_set_clkPin = 46;
+int rotaryEncoder3_set_dtPin = 44;
+int rotaryEncoder3_set_btnPin = 42;
+int rotaryEncoder3_read_clkPin;
+int rotaryEncoder3_read_dtPin;
+long rotaryEncoder3_positionCount = 35;
+int rotaryEncoder3_previousRead_clkPin;
+
+int rotaryEncoder4_set_clkPin = 52;
+int rotaryEncoder4_set_dtPin = 50;
+int rotaryEncoder4_set_btnPin = 48;
+int rotaryEncoder4_read_clkPin;
+int rotaryEncoder4_read_dtPin;
+long rotaryEncoder4_positionCount = 100;
+int rotaryEncoder4_previousRead_clkPin;
+
+// TODO: this needs a clearer name
+int increment = 1;
+
+// TODO: this needs either a clearer name or better expanation
+boolean isDrawing = false;
+// TODO: better nomenclature and explanation
+int sensor1pin;
+// TODO: explain
+int rotaryMode = 0;
+
+// These methods are used as 'wrappers' so that we can use 2 motor libraries together
+// Note that each step can be SINGLE, DOUBLE, INTERLEAVE or MICROSTEP
 void forwardstep1() {
   motor1.onestep(FORWARD, SINGLE);
 }
@@ -31,60 +95,9 @@ void backwardstep2() {
   motor2.onestep(FORWARD, SINGLE);
 }
 
-// Motor shield has two motor ports, now we'll wrap them in an AccelStepper object
+// Declare the AccelStepper motors (which 'wrap' the AFMotor lib motors)
 AccelStepper stepper1(forwardstep1, backwardstep1);
 AccelStepper stepper2(forwardstep2, backwardstep2);
-
-float maxSpeedLeft = 400;
-float accelerationLeft = 100;
-float moveToLeft = 10000;
-
-float maxSpeedRight = 400;
-float accelerationRight = 100;
-float moveToRight = 1000000;
-
-int rotaryEncoder1_set_clkPin = 49;
-int rotaryEncoder1_set_dtPin = 47;
-int rotaryEncoder1_set_btnPin = 45;
-int rotaryEncoder1_read_clkPin;
-int rotaryEncoder1_read_dtPin;
-long rotaryEncoder1_positionCount = 93; // distance
-int rotaryEncoder1_previousRead_clkPin;
-// boolean bCW_1; // this is never used
-
-int rotaryEncoder2_set_clkPin = 40;
-int rotaryEncoder2_set_dtPin = 38;
-int rotaryEncoder2_set_btnPin = 36;
-int rotaryEncoder2_read_clkPin;
-int rotaryEncoder2_read_dtPin;
-long rotaryEncoder2_positionCount = 25; // speed
-int rotaryEncoder2_previousRead_clkPin;
-// boolean bCW_2; // this is never used
-
-int rotaryEncoder3_set_clkPin = 46;
-int rotaryEncoder3_set_dtPin = 44;
-int rotaryEncoder3_set_btnPin = 42;
-int rotaryEncoder3_read_clkPin;
-int rotaryEncoder3_read_dtPin;
-long rotaryEncoder3_positionCount = 35; // speed (30)
-int rotaryEncoder3_previousRead_clkPin;
-// boolean bCW_3; // this is never used
-
-int rotaryEncoder4_set_clkPin = 52;
-int rotaryEncoder4_set_dtPin = 50;
-int rotaryEncoder4_set_btnPin = 48;
-int rotaryEncoder4_read_clkPin;
-int rotaryEncoder4_read_dtPin;
-long rotaryEncoder4_positionCount = 100; // distance (1000)
-int rotaryEncoder4_previousRead_clkPin;
-// boolean bCW_4; // this is never used
-
-int increment = 1;
-
-boolean isDrawing = false;
-int sensor1pin;
-
-int rotaryMode = 0;
 
 void setup()
 {
@@ -92,73 +105,40 @@ void setup()
   pinMode(rotaryEncoder1_set_dtPin, INPUT); // dt
   pinMode(rotaryEncoder1_set_btnPin, INPUT); // btn
 
+  // TODO: These pinModes need to be abstracted to variables
+  // OR they should be clearly marked.
   pinMode(25, INPUT);
   pinMode(23, INPUT);
 
-  // dispay config
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C); // its the 0x3C that says "128 * 64"
-
+  // Initialise the OLED display
+  // Note: it is necessary to change a value in the Adafruit_SSD1306 library to set the screen size to 128x64
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
+
+  // Set some default values for writing to the OLED screen 
   display.setTextColor(WHITE);
-/*
-  display.setTextSize(1);
-  display.setCursor(10, 0); // this moves our cursor right back to the top left pixel.. we should talk about this.
-  display.print("The Polygon Door"); //this copies some text to the screens memory
-*/
+
+  // Write "ARTBOT" in big
   display.setTextSize(3);
   display.setCursor(10, 10); // this moves our cursor right back to the top left pixel.. we should talk about this.
   display.print("ARTBOT"); //this copies some text to the screens memory
+
+  // Write "Hello" in small
   display.setTextSize(2);
   display.setCursor(20, 45);
   display.print("Hello :)"); //this copies some text to the screens memory
   display.display();
 
+  // TODO: Can we remove this?
   display.setTextSize(3);
 
-  // wait to see the above message
+  // Small delay to allow user to see this message
+  // TODO: Is this necessary? I suspect not
   delay(1000);
 }
 
+// TODO: what is this value?
 long steps = 0;
-
-void stopAndResetSteppers() {
-  // stop everything
-  stepper1.stop(); // Stop as fast as possible: sets new target
-  stepper1.runToPosition();
-  stepper2.stop(); // Stop as fast as possible: sets new target
-  stepper2.runToPosition();
-
-  // reset the steppers to position 0
-  stepper1.setCurrentPosition(0);
-  stepper2.setCurrentPosition(0);
-
-  // tell the system that we are no longer drawing
-  isDrawing = false;
-}
-
-void captureSettings() {
-  // each wheel is 64mm
-  // so if I make the the knob think in mm, then
-  // 1 turn is 201.06mm (64 * 3.1416)
-  // So, if someone says 100mm, then how many turns is that?
-  // turns = configuredDistance / (64 * 3.1416)
-  // given that 1 turn is 2048 steps then
-  // turns in steps = 2048 * configuredDistance / (64 * 3.1416)
-
-  // RIGHT WHEEL (knobs 1 and 2 (speed))
-  stepper1.setMaxSpeed(rotaryEncoder2_positionCount * 10); // max 400
-  stepper1.setAcceleration(accelerationRight);
-  // calculate how many steps to go (here we divide by 2 because the bounce goes fowards and backwards)
-  steps = (rotaryEncoder1_positionCount * 2048 / (64 * 3.1416) / 2);
-  stepper1.moveTo(steps);
-  // message(String(steps) );
-
-  // LEFT WHEEL (knobs 4 and 3(speed))
-  stepper2.setMaxSpeed(rotaryEncoder3_positionCount * 10); // max 400
-  stepper2.setAcceleration(accelerationLeft);
-  steps = (rotaryEncoder4_positionCount * 2048 / (64 * 3.1416) / 2);
-  stepper2.moveTo(steps);
-}
 
 void loop() {
   if (!isDrawing) {
