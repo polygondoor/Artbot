@@ -213,4 +213,3 @@ void loop() {
     stepper2.run();
   }
 }
-  display.setTextSize(1);
