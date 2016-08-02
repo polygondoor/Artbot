@@ -1,9 +1,8 @@
 // Include libraries for the OLED screen
-// Some more doc here
-#include <Adafruit_GFX.h>
-#include <SPI.h>
-#include <Wire.h>
-#include <Adafruit_SSD1306.h>
+#include <Adafruit_GFX.h>   
+#include <SPI.h>            
+#include <Wire.h>           
+#include <Adafruit_SSD1306.h>  
 
 // Include libraries for the Stepper motors
 #include <AccelStepper.h>
