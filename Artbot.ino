@@ -25,7 +25,25 @@ Adafruit_SSD1306 display(OLED_RESET);
 AF_Stepper motor1(2048, 1);
 AF_Stepper motor2(2048, 2);
 
+// These methods are used as 'wrappers' so that we can use 2 motor libraries together
+// Note that each step can be SINGLE, DOUBLE, INTERLEAVE or MICROSTEP
+void forwardstep1() {
+  motor1.onestep(FORWARD, SINGLE);
+}
+void backwardstep1() {
+  motor1.onestep(BACKWARD, SINGLE);
+}
+// wrappers for the second motor!
+void forwardstep2() {
+  motor2.onestep(BACKWARD, SINGLE);
+}
+void backwardstep2() {
+  motor2.onestep(FORWARD, SINGLE);
+}
 
+// Declare the AccelStepper motors (which 'wrap' the AFMotor lib motors)
+AccelStepper stepper1(forwardstep1, backwardstep1);
+AccelStepper stepper2(forwardstep2, backwardstep2);
 
 // Default configurations of the motors
 float maxSpeedLeft = 400;
@@ -37,6 +55,7 @@ float accelerationRight = 100;
 float moveToRight = 1000000;
 
 // Many values are required for the action of the rotary controllers
+// TODO: Can these be abstracted out to a separate class or file?
 int rotaryEncoder1_set_clkPin = 49;
 int rotaryEncoder1_set_dtPin = 47;
 int rotaryEncoder1_set_btnPin = 45;
@@ -71,33 +90,12 @@ int rotaryEncoder4_previousRead_clkPin;
 
 // TODO: this needs a clearer name
 int increment = 1;
-
 // TODO: this needs either a clearer name or better expanation
 boolean isDrawing = false;
 // TODO: better nomenclature and explanation
 int sensor1pin;
 // TODO: explain
 int rotaryMode = 0;
-
-// These methods are used as 'wrappers' so that we can use 2 motor libraries together
-// Note that each step can be SINGLE, DOUBLE, INTERLEAVE or MICROSTEP
-void forwardstep1() {
-  motor1.onestep(FORWARD, SINGLE);
-}
-void backwardstep1() {
-  motor1.onestep(BACKWARD, SINGLE);
-}
-// wrappers for the second motor!
-void forwardstep2() {
-  motor2.onestep(BACKWARD, SINGLE);
-}
-void backwardstep2() {
-  motor2.onestep(FORWARD, SINGLE);
-}
-
-// Declare the AccelStepper motors (which 'wrap' the AFMotor lib motors)
-AccelStepper stepper1(forwardstep1, backwardstep1);
-AccelStepper stepper2(forwardstep2, backwardstep2);
 
 void setup()
 {
@@ -140,11 +138,19 @@ void setup()
 // TODO: what is this value?
 long steps = 0;
 
+/*
+ * This is the main block of  code
+ * This code should:
+ * a) be brief
+ * b) describe the high level logic of the app
+ * 
+ */
 void loop() {
   if (!isDrawing) {
     readRotaryEncoders();
 
-    // *TEST* read the IR sensing
+    // TODO: remove test code (perhaps after IR is working)
+    /*
     digitalWrite(23, 255);
     sensor1pin = analogRead(23);
     message(analogRead(1) );
@@ -152,6 +158,7 @@ void loop() {
     Serial.print("sensor1:");
     Serial.println(sensor1pin);
     delay(100);
+    */
 
     // read the value of the knob
     if (digitalRead(rotaryEncoder1_set_btnPin) == LOW) {
@@ -160,7 +167,8 @@ void loop() {
       delay(500);
     }
 
-    //push button to change increment
+    // push button to change increment
+    // TODO: Use a parameter, not a value in the digitalRead param
     if (digitalRead(25) == HIGH) {
       if (increment == 1) {
         increment = 10;
@@ -179,7 +187,8 @@ void loop() {
       report();
     }
 
-    //push button to start
+    // Push button to start
+    // TODO: Use a parameter, not a value in the digitalRead param
     if (digitalRead(23) == HIGH) {
       isDrawing = true;
       displayStartMessage();
@@ -188,7 +197,8 @@ void loop() {
 
   } else {
     if (stepper1.distanceToGo() == 0) {
-      // this line resets the whole device (but user needs to wait till wheel bounces)
+      // Reset the whole device (but user needs to wait till wheel bounces)
+      // TODO: Use a parameter, not a value in the digitalRead param
       if (digitalRead(23) == HIGH) {
         // stop and reset
         stopAndResetSteppers();
@@ -202,48 +212,6 @@ void loop() {
     stepper1.run();
     stepper2.run();
   }
-}
-
-void readRotaryEncoders() {
-  rotaryEncoder1_read_clkPin = digitalRead(rotaryEncoder1_set_clkPin); // orange cable, CLK
-  rotaryEncoder1_read_dtPin = digitalRead(rotaryEncoder1_set_dtPin);
-
-  rotaryMode; // Can be 0 1 2 or 3 (depending on which value we are changing)
-
-  if ((rotaryEncoder1_read_clkPin != rotaryEncoder1_previousRead_clkPin) && (rotaryEncoder1_read_clkPin == LOW)) { // Knob Rotated l when aVal changes, BUT use only if aVal is LOW.
-    if (rotaryEncoder1_read_dtPin == LOW) {
-      if (rotaryMode == 0) {
-        rotaryEncoder1_positionCount += increment;
-      }
-      else if (rotaryMode == 1) {
-        rotaryEncoder2_positionCount += increment;
-      }
-      else if (rotaryMode == 2) {
-        rotaryEncoder3_positionCount += increment;
-      }
-      else {
-        rotaryEncoder4_positionCount += increment;
-      }
-      report();
-    }
-    else {
-      if (rotaryMode == 0) {
-        rotaryEncoder1_positionCount -= increment;
-      }
-      else if (rotaryMode == 1) {
-        rotaryEncoder2_positionCount -= increment;
-      }
-      else if (rotaryMode == 2) {
-        rotaryEncoder3_positionCount -= increment;
-      }
-      else {
-        rotaryEncoder4_positionCount -= increment;
-      }
-      report();
-    }
-  }
-
-  rotaryEncoder1_previousRead_clkPin = rotaryEncoder1_read_clkPin; // Don’t forget this
 }
 
 void report() {
