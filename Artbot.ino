@@ -4,9 +4,8 @@
  *
  *  The Artbot is of the ilk of drawing bots starting with MIT's turtle bot
  *  in which a pen is positioned between 2 wheels, each drien by a separate stepper motor
- *   
  */
- 
+
 // Include libraries for drawing to the OLED screen
 #include <Adafruit_GFX.h>
 #include <SPI.h>
@@ -160,7 +159,8 @@ void loop() {
     delay(100);
     */
 
-    // read the value of the knob
+    // See if mode button has been pressed
+    // This controls which value will be modified by the knob
     if (digitalRead(rotaryEncoder1_set_btnPin) == LOW) {
       // changeMode
       rotaryMode = (rotaryMode + 1) % 4;
