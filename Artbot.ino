@@ -1,4 +1,4 @@
-/* 
+/*
  *  This Arduino project drives the Polygon Door Artbot
  *  Its aim is to empower as many drawing modes as possible.
  *
@@ -17,8 +17,8 @@
 #include <AFMotor.h>
 
 // Declare the OLED screen
-#define OLED_RESET 4                  
-Adafruit_SSD1306 display(OLED_RESET); 
+#define OLED_RESET 4
+Adafruit_SSD1306 display(OLED_RESET);
 
 // Declare the motors (for AFMotor lib)
 AF_Stepper motor1(2048, 1);
@@ -47,7 +47,7 @@ AccelStepper stepper2(forwardstep2, backwardstep2);
 // Default configurations of the motors
 float maxSpeedLeft = 400;
 float accelerationLeft = 100;
-float moveToLeft = 10000;
+float moveToLeft = 100000;
 
 float maxSpeedRight = 400;
 float accelerationRight = 100;
@@ -96,23 +96,31 @@ int sensor1pin;
 // TODO: explain
 int rotaryMode = 0;
 
+// see notes in UserInterfaceControl - wheel diameter of robot
+
+float wheelDiam = 95;
+
 void setup()
 {
   pinMode(rotaryEncoder1_set_clkPin, INPUT); // clk
   pinMode(rotaryEncoder1_set_dtPin, INPUT); // dt
   pinMode(rotaryEncoder1_set_btnPin, INPUT); // btn
 
+  //digitalWrite(rotaryEncoder1_set_btnPin, HIGH);
+
+
   // TODO: These pinModes need to be abstracted to variables
   // OR they should be clearly marked.
-  pinMode(25, INPUT);
-  pinMode(23, INPUT);
+  pinMode(25, INPUT_PULLUP);
+  pinMode(23, INPUT_PULLUP);
+  pinMode(27, INPUT_PULLUP);
 
   // Initialise the OLED display
   // Note: it is necessary to change a value in the Adafruit_SSD1306 library to set the screen size to 128x64
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
 
-  // Set some default values for writing to the OLED screen 
+  // Set some default values for writing to the OLED screen
   display.setTextColor(WHITE);
 
   // Write "ARTBOT" in big
@@ -142,7 +150,7 @@ long steps = 0;
  * This code should:
  * a) be brief
  * b) describe the high level logic of the app
- * 
+ *
  */
 void loop() {
   if (!isDrawing) {
@@ -162,14 +170,14 @@ void loop() {
     // See if mode button has been pressed
     // This controls which value will be modified by the knob
     if (digitalRead(rotaryEncoder1_set_btnPin) == LOW) {
-      // changeMode
       rotaryMode = (rotaryMode + 1) % 4;
+      report();
       delay(500);
     }
 
     // push button to change increment
     // TODO: Use a parameter, not a value in the digitalRead param
-    if (digitalRead(25) == HIGH) {
+    if (digitalRead(25) == LOW) {
       if (increment == 1) {
         increment = 10;
         message("Increment 10");
@@ -189,7 +197,7 @@ void loop() {
 
     // Push button to start
     // TODO: Use a parameter, not a value in the digitalRead param
-    if (digitalRead(23) == HIGH) {
+    if (digitalRead(23) == LOW) {
       isDrawing = true;
       displayStartMessage();
       captureSettings();
@@ -199,11 +207,6 @@ void loop() {
     if (stepper1.distanceToGo() == 0) {
       // Reset the whole device (but user needs to wait till wheel bounces)
       // TODO: Use a parameter, not a value in the digitalRead param
-      if (digitalRead(23) == HIGH) {
-        // stop and reset
-        stopAndResetSteppers();
-        report();
-      }
       stepper1.moveTo(-stepper1.currentPosition());
     }
     if (stepper2.distanceToGo() == 0) {
@@ -211,5 +214,10 @@ void loop() {
     }
     stepper1.run();
     stepper2.run();
+    if (digitalRead(27) == LOW) {
+        // stop and reset
+        stopAndResetSteppers();
+        report();
+      }
   }
 }
