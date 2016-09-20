@@ -1,4 +1,4 @@
-/* 
+/*
  *  This Arduino project drives the Polygon Door Artbot
  *  Its aim is to empower as many drawing modes as possible.
  *
@@ -17,8 +17,8 @@
 #include <AFMotor.h>
 
 // Declare the OLED screen
-#define OLED_RESET 4                  
-Adafruit_SSD1306 display(OLED_RESET); 
+#define OLED_RESET 4
+Adafruit_SSD1306 display(OLED_RESET);
 
 // Declare the motors (for AFMotor lib)
 AF_Stepper motor1(2048, 1);
@@ -63,29 +63,9 @@ int rotaryEncoder1_read_dtPin;
 long rotaryEncoder1_positionCount = 93;
 int rotaryEncoder1_previousRead_clkPin;
 
-int rotaryEncoder2_set_clkPin = 40;
-int rotaryEncoder2_set_dtPin = 38;
-int rotaryEncoder2_set_btnPin = 36;
-int rotaryEncoder2_read_clkPin;
-int rotaryEncoder2_read_dtPin;
-long rotaryEncoder2_positionCount = 25;
-int rotaryEncoder2_previousRead_clkPin;
+int incrementBtn = 25;
+int startStopBtn = 23;
 
-int rotaryEncoder3_set_clkPin = 46;
-int rotaryEncoder3_set_dtPin = 44;
-int rotaryEncoder3_set_btnPin = 42;
-int rotaryEncoder3_read_clkPin;
-int rotaryEncoder3_read_dtPin;
-long rotaryEncoder3_positionCount = 35;
-int rotaryEncoder3_previousRead_clkPin;
-
-int rotaryEncoder4_set_clkPin = 52;
-int rotaryEncoder4_set_dtPin = 50;
-int rotaryEncoder4_set_btnPin = 48;
-int rotaryEncoder4_read_clkPin;
-int rotaryEncoder4_read_dtPin;
-long rotaryEncoder4_positionCount = 100;
-int rotaryEncoder4_previousRead_clkPin;
 
 // TODO: this needs a clearer name
 int increment = 1;
@@ -104,15 +84,15 @@ void setup()
 
   // TODO: These pinModes need to be abstracted to variables
   // OR they should be clearly marked.
-  pinMode(25, INPUT);
-  pinMode(23, INPUT);
+  pinMode(incrementBtn, INPUT);
+  pinMode(startStopBtn, INPUT);
 
   // Initialise the OLED display
   // Note: it is necessary to change a value in the Adafruit_SSD1306 library to set the screen size to 128x64
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
 
-  // Set some default values for writing to the OLED screen 
+  // Set some default values for writing to the OLED screen
   display.setTextColor(WHITE);
 
   // Write "ARTBOT" in big
@@ -142,7 +122,7 @@ long steps = 0;
  * This code should:
  * a) be brief
  * b) describe the high level logic of the app
- * 
+ *
  */
 void loop() {
   if (!isDrawing) {
@@ -169,7 +149,7 @@ void loop() {
 
     // push button to change increment
     // TODO: Use a parameter, not a value in the digitalRead param
-    if (digitalRead(25) == HIGH) {
+    if (digitalRead(incrementBtn) == HIGH) {
       if (increment == 1) {
         increment = 10;
         message("Increment 10");
@@ -189,7 +169,7 @@ void loop() {
 
     // Push button to start
     // TODO: Use a parameter, not a value in the digitalRead param
-    if (digitalRead(23) == HIGH) {
+    if (digitalRead(startStopBtn) == HIGH) {
       isDrawing = true;
       displayStartMessage();
       captureSettings();
@@ -199,7 +179,7 @@ void loop() {
     if (stepper1.distanceToGo() == 0) {
       // Reset the whole device (but user needs to wait till wheel bounces)
       // TODO: Use a parameter, not a value in the digitalRead param
-      if (digitalRead(23) == HIGH) {
+      if (digitalRead(startStopBtn) == HIGH) {
         // stop and reset
         stopAndResetSteppers();
         report();
