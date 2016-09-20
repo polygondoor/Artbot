@@ -21,4 +21,5 @@ void stopAndResetSteppers() {
 
   // tell the system that we are no longer drawing
   isDrawing = false;
+  delay(1000);
 }
