@@ -150,19 +150,11 @@ void loop() {
     // push button to change increment
     // TODO: Use a parameter, not a value in the digitalRead param
     if (digitalRead(incrementBtn) == HIGH) {
-      if (increment == 1) {
-        increment = 10;
-        message("Increment 10");
+	  increment *= 10;
+	  if (increment > 1000) {
+        increment = 1;
       }
-      else if (increment == 10) {
-        increment = 100; message("Increment 100");
-      }
-      else if (increment == 100) {
-        increment = 1000; message("Increment 1000");
-      }
-      else if (increment == 1000) {
-        increment = 1; message("Increment 1");
-      }
+	  message("Increment " + increment);
       delay(500);
       report();
     }
