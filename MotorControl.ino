@@ -1,8 +1,8 @@
-/* 
- *  This file hides all the complexity involved in 
- *  using the Accell Stepper library with the 
+/*
+ *  This file hides all the complexity involved in
+ *  using the Accell Stepper library with the
  *  Adafruit AFMotor library
- *  
+ *
  */
 
 /*
@@ -11,8 +11,10 @@
 void stopAndResetSteppers() {
   // stop everything
   stepper1.stop(); // Stop as fast as possible: sets new target
-  stepper1.runToPosition();
   stepper2.stop(); // Stop as fast as possible: sets new target
+
+  // move both steppers to the same default position.
+  stepper1.runToPosition();
   stepper2.runToPosition();
 
   // reset the steppers to position 0
